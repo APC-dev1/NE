@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Norepinephrine Infusion Calculator</title>
+    <title>Critical Care & High-Alert IV Calculator</title>
     <style>
         body {
             font-family: 'Sarabun', sans-serif;
-            background-color: #f0f4f8;
+            background-color: #f4f7f6;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -21,133 +21,240 @@
             border-radius: 12px;
             box-shadow: 0 8px 16px rgba(0,0,0,0.1);
             width: 100%;
-            max-width: 450px;
+            max-width: 500px;
         }
-        h2 { 
-            color: #d35400; 
-            text-align: center;
-            margin-bottom: 5px;
-        }
-        .subtitle {
-            text-align: center;
-            color: #7f8c8d;
-            font-size: 14px;
-            margin-bottom: 20px;
-        }
-        .input-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            color: #2c3e50;
-            font-weight: bold;
-        }
+        h2 { color: #2c3e50; text-align: center; margin-bottom: 5px; font-size: 22px; }
+        .subtitle { text-align: center; color: #e74c3c; font-size: 14px; margin-bottom: 20px; font-weight: bold; }
+        
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; color: #34495e; font-weight: bold; font-size: 15px; }
         input, select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #bdc3c7;
-            border-radius: 6px;
-            box-sizing: border-box;
-            font-size: 16px;
+            width: 100%; padding: 10px; border: 1px solid #bdc3c7; border-radius: 6px; font-size: 15px; box-sizing: border-box;
         }
+        
         button {
-            background-color: #e67e22;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            width: 100%;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-            margin-top: 10px;
-            transition: background 0.3s;
+            background-color: #2980b9; color: white; border: none; padding: 12px 20px; width: 100%;
+            border-radius: 6px; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 10px; transition: 0.3s;
         }
-        button:hover { background-color: #d35400; }
+        button:hover { background-color: #1f618d; }
+        
         .result-box {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #e8f8f5;
-            border-left: 5px solid #1abc9c;
-            border-radius: 4px;
-            display: none;
+            margin-top: 20px; padding: 15px; background-color: #e8f8f5; border-left: 5px solid #1abc9c;
+            border-radius: 4px; display: none;
         }
         .info-box {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #fdf2e9;
-            border: 1px solid #fae5d3;
-            border-radius: 6px;
-            font-size: 14px;
-            color: #d35400;
+            margin-top: 20px; padding: 15px; background-color: #fef9e7; border: 1px solid #f1c40f;
+            border-radius: 6px; font-size: 14px; color: #7d6608;
         }
-        .info-box ul {
-            margin: 5px 0 0 0;
-            padding-left: 20px;
-        }
+        .info-box ul { margin: 5px 0 0 0; padding-left: 20px; }
+        
+        /* ซ่อน section ที่ไม่ได้ใช้งาน */
+        .dynamic-section { display: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Norepinephrine Calculator</h2>
-    <div class="subtitle">ระบบคำนวณอัตราการให้ยา (High-Alert Medication)</div>
+    <h2>Critical Care IV Calculator</h2>
+    <div class="subtitle">⚠️ ระบบคำนวณยา High-Alert Medications</div>
 
     <div class="input-group">
-        <label for="weight">น้ำหนักผู้ป่วย (kg):</label>
-        <input type="number" id="weight" placeholder="เช่น 60" step="0.1">
-    </div>
-
-    <div class="input-group">
-        <label for="dose">ขนาดยาที่ต้องการ (mcg/kg/min):</label>
-        <input type="number" id="dose" placeholder="เช่น 0.05" step="0.01">
-    </div>
-
-    <div class="input-group">
-        <label for="concentration">สูตรการผสมยา (Concentration):</label>
-        <select id="concentration">
-            <option value="16">Single Strength: 4 mg ใน 250 mL (16 mcg/mL)</option>
-            <option value="32">Double Strength: 8 mg ใน 250 mL (32 mcg/mL)</option>
-            <option value="64">Quadruple Strength: 16 mg ใน 250 mL (64 mcg/mL)</option>
+        <label for="drugSelect">เลือกรายการยา:</label>
+        <select id="drugSelect" onchange="updateUI()">
+            <option value="" disabled selected>-- กรุณาเลือกยา --</option>
+            <option value="norepi">Norepinephrine (Levophed)</option>
+            <option value="dopa">Dopamine</option>
+            <option value="dobuta">Dobutamine</option>
+            <option value="phenytoin">Phenytoin (Dilantin) - Loading</option>
+            <option value="amiodarone">Amiodarone (Cordarone)</option>
+            <option value="mgso4">50% Magnesium Sulfate (Pre-eclampsia)</option>
         </select>
     </div>
 
-    <button onclick="calculateInfusion()">คำนวณอัตราการหยด (mL/hr)</button>
-
-    <div id="resultBox" class="result-box">
-        <div style="font-size: 14px; color: #7f8c8d;">อัตราการให้ยาผ่าน Infusion Pump:</div>
-        <div id="rateValue" style="font-weight: bold; font-size: 28px; color: #16a085; margin-top: 5px;"></div>
+    <div id="weightDoseSection" class="dynamic-section">
+        <div class="input-group">
+            <label for="weight">น้ำหนักผู้ป่วย (kg):</label>
+            <input type="number" id="weight" placeholder="เช่น 60" step="0.1">
+        </div>
+        <div class="input-group">
+            <label for="dose" id="doseLabel">ขนาดยาที่ต้องการ (mcg/kg/min):</label>
+            <input type="number" id="dose" placeholder="เช่น 0.05" step="0.01">
+        </div>
+        <div class="input-group">
+            <label for="concentration">สูตรการผสมยา (Concentration):</label>
+            <select id="concentration"></select>
+        </div>
     </div>
 
-    <div class="info-box">
-        <strong>📋 ข้อมูลการผสมยาและสารน้ำที่เข้ากันได้:</strong>
-        <ul>
-            <li><strong>Compatible Fluids:</strong> D5W (แนะนำสุด), D5NSS, NSS</li>
-            <li><strong>Incompatible:</strong> ห้ามผสมร่วมกับสารละลายที่มีฤทธิ์เป็นด่าง เช่น Sodium Bicarbonate เพราะจะทำให้ยาเสื่อมสภาพ</li>
-            <li><strong>Administration:</strong> ควรให้ผ่าน Central line หากทำได้ เพื่อป้องกัน tissue necrosis จากยาออกนอกเส้นเลือด (Extravasation)</li>
-        </ul>
+    <div id="phenytoinSection" class="dynamic-section">
+        <div class="input-group">
+            <label for="ptWeight">น้ำหนักผู้ป่วย (kg):</label>
+            <input type="number" id="ptWeight" placeholder="เช่น 60" step="0.1">
+        </div>
+        <div class="input-group">
+            <label for="phenyDose">ขนาดยา Loading (mg/kg):</label>
+            <select id="phenyDose">
+                <option value="15">15 mg/kg</option>
+                <option value="20">20 mg/kg</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="protocolSection" class="dynamic-section">
+        <div class="input-group">
+            <label for="protocolSelect">เลือกแผนการให้ยา (Protocol):</label>
+            <select id="protocolSelect"></select>
+        </div>
+    </div>
+
+    <button id="calcBtn" onclick="calculate()" style="display: none;">คำนวณอัตราการให้ยา</button>
+
+    <div id="resultBox" class="result-box">
+        <div id="resultTitle" style="font-size: 14px; color: #7f8c8d;">ผลการคำนวณ:</div>
+        <div id="resultValue" style="font-weight: bold; font-size: 22px; color: #16a085; margin-top: 5px;"></div>
+    </div>
+
+    <div id="infoBox" class="info-box" style="display: none;">
+        <strong>📋 ข้อมูลยาและการผสม:</strong>
+        <div id="infoContent"></div>
     </div>
 </div>
 
 <script>
-    function calculateInfusion() {
-        const weight = parseFloat(document.getElementById('weight').value);
-        const dose = parseFloat(document.getElementById('dose').value);
-        const concentration = parseFloat(document.getElementById('concentration').value);
+    const drugData = {
+        norepi: {
+            type: "weightDose",
+            doseUnit: "mcg/kg/min",
+            options: [
+                { text: "4 mg ใน 250 mL (16 mcg/mL)", value: 16 },
+                { text: "8 mg ใน 250 mL (32 mcg/mL)", value: 32 },
+                { text: "16 mg ใน 250 mL (64 mcg/mL)", value: 64 }
+            ],
+            info: "<ul><li><b>Fluid:</b> D5W, D5NSS, NSS</li><li><b>Note:</b> ควรให้ทาง Central line, ระวัง Extravasation</li></ul>"
+        },
+        dopa: {
+            type: "weightDose",
+            doseUnit: "mcg/kg/min",
+            options: [
+                { text: "250 mg ใน 250 mL (1,000 mcg/mL)", value: 1000 },
+                { text: "400 mg ใน 250 mL (1,600 mcg/mL)", value: 1600 }
+            ],
+            info: "<ul><li><b>Fluid:</b> D5W, NSS</li><li><b>Note:</b> ห้ามผสมกับยาที่มีฤทธิ์เป็นด่าง เช่น NaHCO3</li></ul>"
+        },
+        dobuta: {
+            type: "weightDose",
+            doseUnit: "mcg/kg/min",
+            options: [
+                { text: "250 mg ใน 250 mL (1,000 mcg/mL)", value: 1000 },
+                { text: "500 mg ใน 250 mL (2,000 mcg/mL)", value: 2000 }
+            ],
+            info: "<ul><li><b>Fluid:</b> D5W, NSS</li><li><b>Note:</b> สารละลายอาจมีสีชมพูอ่อนได้ ไม่ถือว่ายาเสื่อมสภาพ</li></ul>"
+        },
+        phenytoin: {
+            type: "phenytoin",
+            info: "<ul><li><b>Fluid:</b> <span style='color:red;'>**NSS เท่านั้น**</span> (ตกตะกอนใน D5W)</li><li><b>Rate:</b> <span style='color:red;'>ห้ามเกิน 50 mg/min</span> (ป้องกัน Severe Hypotension / Arrhythmia)</li><li><b>Note:</b> ต้องใช้ In-line filter (0.22 - 0.52 micron)</li></ul>"
+        },
+        amiodarone: {
+            type: "protocol",
+            options: [
+                { text: "VT/VF pulse (150 mg in 100 mL D5W over 10 min)", rate: "600 mL/hr", desc: "ให้ 150 mg หมดใน 10 นาที" },
+                { text: "Maintenance 1 mg/min (900 mg in 500 mL D5W)", rate: "33.3 mL/hr", desc: "ให้ต่อเนื่อง 6 ชั่วโมงแรก" },
+                { text: "Maintenance 0.5 mg/min (900 mg in 500 mL D5W)", rate: "16.7 mL/hr", desc: "ให้ต่อเนื่อง 18 ชั่วโมงถัดมา" }
+            ],
+            info: "<ul><li><b>Fluid:</b> <b>D5W</b> (แนะนำ), NSS</li><li><b>Note:</b> หากให้เกิน 2 ชั่วโมง ควรใช้ขวดแก้วหรือถุง Polyolefin (หลีกเลี่ยง PVC)</li></ul>"
+        },
+        mgso4: {
+            type: "protocol",
+            options: [
+                { text: "Loading: 4g IV (ผสมให้ได้ 20-100 mL) over 20 min", rate: "ตั้ง Infusion Rate ตามปริมาตรที่ผสม (เช่น ผสมเป็น 100 mL ให้ตั้ง rate 300 mL/hr)", desc: "ให้หมดภายใน 20 นาที" },
+                { text: "Maintenance: 1 g/hr (ผสม 10g ใน 500 mL LRS/NSS)", rate: "50 mL/hr", desc: "ความเข้มข้น 20 mg/mL" },
+                { text: "Maintenance: 2 g/hr (ผสม 10g ใน 500 mL LRS/NSS)", rate: "100 mL/hr", desc: "ความเข้มข้น 20 mg/mL" }
+            ],
+            info: "<ul><li><b>Fluid:</b> LRS, NSS, D5W</li><li><b>Note:</b> 50% MgSO4 1 Amp (2 mL) = 1 g<br>ประเมิน Deep tendon reflex, Urine output (>30 mL/hr) และ Respiratory rate (>12/min) สม่ำเสมอ</li><li><b>Antidote:</b> 10% Calcium Gluconate 10 mL IV push ช้าๆ</li></ul>"
+        }
+    };
 
-        if (isNaN(weight) || isNaN(dose) || weight <= 0 || dose <= 0) {
-            alert("กรุณากรอกข้อมูลน้ำหนักและขนาดยาให้ครบถ้วนและถูกต้อง");
-            return;
+    function updateUI() {
+        const drug = document.getElementById('drugSelect').value;
+        const data = drugData[drug];
+        
+        // ซ่อนทุก section ก่อน
+        document.querySelectorAll('.dynamic-section').forEach(el => el.style.display = 'none');
+        document.getElementById('resultBox').style.display = 'none';
+        document.getElementById('calcBtn').style.display = 'block';
+
+        if (!data) return;
+
+        // แสดง Info Box
+        document.getElementById('infoBox').style.display = 'block';
+        document.getElementById('infoContent').innerHTML = data.info;
+
+        if (data.type === "weightDose") {
+            document.getElementById('weightDoseSection').style.display = 'block';
+            document.getElementById('doseLabel').innerText = `ขนาดยาที่ต้องการ (${data.doseUnit}):`;
+            
+            const concSelect = document.getElementById('concentration');
+            concSelect.innerHTML = "";
+            data.options.forEach(opt => {
+                concSelect.innerHTML += `<option value="${opt.value}">${opt.text}</option>`;
+            });
+        } 
+        else if (data.type === "phenytoin") {
+            document.getElementById('phenytoinSection').style.display = 'block';
+        }
+        else if (data.type === "protocol") {
+            document.getElementById('protocolSection').style.display = 'block';
+            
+            const protoSelect = document.getElementById('protocolSelect');
+            protoSelect.innerHTML = "";
+            data.options.forEach((opt, index) => {
+                protoSelect.innerHTML += `<option value="${index}">${opt.text}</option>`;
+            });
+        }
+    }
+
+    function calculate() {
+        const drug = document.getElementById('drugSelect').value;
+        const data = drugData[drug];
+        const resultBox = document.getElementById('resultBox');
+        const resultValue = document.getElementById('resultValue');
+        
+        if (data.type === "weightDose") {
+            const weight = parseFloat(document.getElementById('weight').value);
+            const dose = parseFloat(document.getElementById('dose').value);
+            const conc = parseFloat(document.getElementById('concentration').value);
+
+            if (!weight || !dose) { alert("กรุณากรอกข้อมูลให้ครบถ้วน"); return; }
+
+            const rate = (dose * weight * 60) / conc;
+            resultValue.innerHTML = `${rate.toFixed(1)} mL/hr`;
+        } 
+        else if (data.type === "phenytoin") {
+            const weight = parseFloat(document.getElementById('ptWeight').value);
+            const dose = parseFloat(document.getElementById('phenyDose').value);
+            
+            if (!weight) { alert("กรุณากรอกน้ำหนักผู้ป่วย"); return; }
+
+            const totalDose = weight * dose;
+            const minTime = totalDose / 50; // Max rate 50mg/min
+            
+            resultValue.innerHTML = `
+                Total Dose: <span style="color:#c0392b">${totalDose.toFixed(0)} mg</span><br>
+                เวลาในการดริปขั้นต่ำ: <span style="color:#c0392b">${minTime.toFixed(0)} นาที</span><br>
+                <div style="font-size: 14px; color: #7f8c8d; margin-top: 5px;">*แนะนำให้เจือจางใน NSS ความเข้มข้นไม่เกิน 10 mg/mL (ใช้ NSS อย่างน้อย ${ (totalDose/10).toFixed(0) } mL)</div>
+            `;
+        }
+        else if (data.type === "protocol") {
+            const selectedIdx = document.getElementById('protocolSelect').value;
+            const protoData = data.options[selectedIdx];
+            
+            resultValue.innerHTML = `
+                Rate: <span style="color:#d35400">${protoData.rate}</span><br>
+                <div style="font-size: 14px; color: #7f8c8d; margin-top: 5px;">เป้าหมาย: ${protoData.desc}</div>
+            `;
         }
 
-        // สูตรคำนวณ: Rate (mL/hr) = [Dose (mcg/kg/min) * Weight (kg) * 60 (min/hr)] / Concentration (mcg/mL)
-        const rate = (dose * weight * 60) / concentration;
-        const rateRounded = rate.toFixed(1);
-
-        const resultBox = document.getElementById('resultBox');
         resultBox.style.display = 'block';
-        document.getElementById('rateValue').innerText = rateRounded + " mL/hr";
     }
 </script>
 
